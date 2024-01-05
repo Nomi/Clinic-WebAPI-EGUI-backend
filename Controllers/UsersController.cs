@@ -114,7 +114,7 @@ namespace EGUI_Stage2.Controllers
             return Ok(new Response { Status = "Success", Message = "Doctor created successfully!" });
         }
 
-        [HttpPost]
+        [HttpPut]
         [Authorize(Roles = UserRoles.admin)]
         [Route("verify-patient")]
         public async Task<IActionResult> VerifyPatient([FromQuery] string patientUsername)

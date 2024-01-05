@@ -112,23 +112,6 @@ namespace EGUI_Stage2.Repositories
 
         public async Task UpdateScheduleTimingsAsync(Schedule modifiedSchedule)
         {
-            ////TimeOnly firstStartTime = scheduleEntry.StartTime;
-            ////TimeOnly lastStartTime = scheduleEntry.EndTime.AddMinutes( -1 * ConfigHelper.VisitLengthMinutes);
-
-            ////List<VisitSlot> visitSlotsToRemove = scheduleEntry.VisitSlots.Where(x => (x.StartTime < firstStartTime && (x.EndTime ) > lastStartTime)).ToList();
-            //for (int i = 0; i < nSchedule.ScheduleEntries.Count; i++)
-            //{
-            //    var currEntry = nSchedule.ScheduleEntries[i];
-            //    await 
-            //}
-            //_dbContext.VisitSlots.RemoveRange(nSchedule.ScheduleEntries.VisitSlots);
-
-            //nSchedule.VisitSlots = VisitSlot.CreateVisitSlotsForScheduleEntry(ref nSchedule);
-            //_dbContext.Entry(nSchedule).State = EntityState.Modified;
-            //await _dbContext.SaveChangesAsync();
-
-
-            ///
             var existingSchedule = await _dbContext.Schedules
                                 .Where(x => x.Id == modifiedSchedule.Id)
                                 .Include(x => x.ScheduleEntries).ThenInclude(x => x.VisitSlots)
@@ -183,26 +166,5 @@ namespace EGUI_Stage2.Repositories
             await _dbContext.SaveChangesAsync();
 
         }
-
-
-        //private bool disposed = false;
-
-        //protected virtual void Dispose(bool disposing)
-        //{
-        //    if (!this.disposed)
-        //    {
-        //        if (disposing)
-        //        {
-        //            _context.Dispose();
-        //        }
-        //    }
-        //    this.disposed = true;
-        //}
-
-        //public void Dispose()
-        //{
-        //    Dispose(true);
-        //    GC.SuppressFinalize(this);
-        //}
     }
 }
