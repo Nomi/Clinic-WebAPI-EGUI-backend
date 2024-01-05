@@ -53,8 +53,10 @@ namespace EGUI_Stage2.Repositories
 
         public async Task CopySchedule(User doc, int sourceWeekOffset, int targetWeekOffset)
         {
+            DateTime currentDateOfMonday = CalendarHelper.GetDateOfMondayOfWeek(DateTime.Now).Date;
             DateTime sourceDateOfMonday = CalendarHelper.GetDateOfMondayOfWeek(DateTime.Now.AddDays(7 * sourceWeekOffset)).Date;
             DateTime targetDateOfMonday = CalendarHelper.GetDateOfMondayOfWeek(DateTime.Now.AddDays(7 * targetWeekOffset)).Date;
+            TimeSpan delta = targetDateOfMonday.Date - sourceDateOfMonday.Date;
             var toCopy = (await GetSchedulesAsync(x => x.Doctor.Id == doc.Id && x.DateOfMonday.Date == sourceDateOfMonday.Date)).FirstOrDefault();
             //await _dbContext.ScheduleEntries.Where(x => x.Schedule.Doctor.Id == doc.Id && x.Schedule.DateOfMonday == targetDateOfMonday))
             await _dbContext.Schedules.Where(x => x.Doctor.Id == doc.Id && x.DateOfMonday.Date == targetDateOfMonday).ExecuteDeleteAsync();
@@ -73,8 +75,8 @@ namespace EGUI_Stage2.Repositories
                 foreach (var schedEntry in toCopy.ScheduleEntries)
                 {
                     ScheduleEntry newSE = new();
-                    newSE.Date = DateTime.Now.AddDays(7 * targetWeekOffset).Date;
-                    newSE.dayOfWeek = newSE.dayOfWeek;
+                    newSE.Date = schedEntry.Date.Date.Add(delta).Date;
+                    //newSE.dayOfWeek = newSE.Date.DayOfWeek;
                     newSE.StartTime = schedEntry.StartTime;
                     newSE.EndTime = schedEntry.EndTime;
                     newSE.VisitSlots = VisitSlot.CreateVisitSlotsForScheduleEntry(ref newSE);

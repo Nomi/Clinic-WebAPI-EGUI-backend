@@ -138,7 +138,7 @@ namespace EGUI_Stage2.Controllers
         [Route("list-of-doctors")]
         public async Task<IActionResult> ListOfDoctors()
         {
-            if (this.User.IsInRole(UserRoles.unverifiedPatient))
+            if (this.User.IsInRole(UserRoles.unverifiedPatient)) //can replace using technique to get current user (used elsewhere) 
                 return Forbid("Your Patient account has not been verified yet (from our side).");
 
             var res = await _userManager.GetUsersInRoleAsync(UserRoles.doctor);

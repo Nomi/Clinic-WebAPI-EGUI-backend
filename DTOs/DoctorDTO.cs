@@ -27,9 +27,9 @@ namespace EGUI_Stage2.DTOs
             foreach(Schedule s in schedules)
             {
                 if (s.ScheduleEntries == null) continue;
-                foreach(var entry in s.ScheduleEntries.Where(x=>x.Date>DateTime.Now))
+                foreach(var entry in s.ScheduleEntries.Where(x=>x.Date>DateTime.Now.Date))
                 {
-                    AppointmentSlots.AddRange(entry.VisitSlots.Where(x => x.StartTime > TimeOnly.FromDateTime(DateTime.Now) && (x.Patient == null || x?.Patient.Id == currentUser.Id)));
+                    AppointmentSlots.AddRange(entry.VisitSlots.Where(x => (x.ParentScheduleEntry.Date.Date != DateTime.Now.Date || x.StartTime >= TimeOnly.FromDateTime(DateTime.Now)) && (x.Patient == null || x?.Patient.Id == currentUser.Id)));
                 }
             }
 

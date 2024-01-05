@@ -105,13 +105,13 @@ namespace EGUI_Stage2.Controllers
         [HttpGet]
         [Authorize]
         [Route("get-detailed-future-schedule-for-doctor")]
-        public async Task<IActionResult> GetDoctorDetailedFutureSchedule([FromQuery] string docUsername, [FromQuery] int upperBoundWeekOffset = -1)
+        public async Task<IActionResult> GetDoctorDetailedFutureSchedule([FromQuery] string docUsername)//, [FromQuery] int upperBoundWeekOffset = -1
         {
             var doc = await _userManager.FindByNameAsync(docUsername);
             if (doc == null || !(await _userManager.IsInRoleAsync(doc, UserRoles.doctor)))
                 return UnprocessableEntity(new Response { Status = "Error", Message = "No Doctor with given username exists." });
             DateTime dateOfMonday = CalendarHelper.GetDateOfMondayOfWeek(DateTime.Today.Date).Date;
-            var res = await _scheduleManager.GetSchedulesAsync(x => x.Doctor.UserName == docUsername && x.DateOfMonday.Date >= dateOfMonday);
+            var res = await _scheduleManager.GetSchedulesAsync(x => x.Doctor.UserName == docUsername && x.DateOfMonday.Date >= dateOfMonday.Date);
 
 
             var user = await _userManager.FindByNameAsync(this.User.Identity.Name);
@@ -123,8 +123,8 @@ namespace EGUI_Stage2.Controllers
 
         [HttpGet]
         [Authorize(Roles = UserRoles.patient)]
-        [Route("subscribe-or-unsubscribe-toggle")]
-        public async Task<IActionResult> GetDoctorDetailedFutureSchedule([FromQuery] int visitSlotId, [FromQuery] bool isUnsubscribe = false) //doesn't prevent signups to past visitSlots, because that'd be too much scope (would need similar attention in other places).
+        [Route("subscribe-or-unsubscribe-appointment")]
+        public async Task<IActionResult> SubsribeOrUnsubscribePatientToVisit([FromQuery] int visitSlotId, [FromQuery] bool isUnsubscribe = false) //doesn't prevent signups to past visitSlots, because that'd be too much scope (would need similar attention in other places).
         { 
 
             var user = await _userManager.FindByNameAsync(this.User.Identity.Name);

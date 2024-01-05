@@ -6,10 +6,13 @@ namespace EGUI_Stage2.Models
 {
     public class Schedule
     {
-        [Key]
+        [Key] 
         public string Id;
 
         public DateTime DateOfMonday { get; set; }
+
+        [NotMapped] 
+        public DateTime DateOfSunday => DateOfMonday.AddDays(7).Date.AddSeconds(-1); //gives the DateTime with value 11:59pm of the sunday.
 
         public List<ScheduleEntry>? ScheduleEntries { get; set; }
 
