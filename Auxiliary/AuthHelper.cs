@@ -31,7 +31,7 @@ namespace EGUI_Stage2.Auxiliary
             //initializing custom roles 
             var roleManager = scopedServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = scopedServiceProvider.GetRequiredService<UserManager<User>>();
-            string[] roleNames = { UserRoles.admin, UserRoles.doctor, UserRoles.patient, UserRoles.unverifiedPatient };
+            string[] roleNames = { UserRoles.admin, UserRoles.doctor, UserRoles.patient };//, UserRoles.unverifiedPatient };
             IdentityResult roleResult;
 
             foreach (var roleName in roleNames)

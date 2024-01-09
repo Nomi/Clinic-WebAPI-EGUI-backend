@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.Entity;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 
 namespace EGUI_Stage2.Controllers
@@ -70,7 +71,7 @@ namespace EGUI_Stage2.Controllers
         {
             var userExists = await _userManager.FindByNameAsync(userData.Username);
             if (userExists != null)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "Username already exists!" });
+                return StatusCode(StatusCodes.Status409Conflict, new Response { Status = "Error", Message = "Username already exists!" });
 
             User user = new()
             {
@@ -81,9 +82,10 @@ namespace EGUI_Stage2.Controllers
             };
             user.IsVerified = false;
             var result = await _userManager.CreateAsync(user, userData.Password);
-            
+            _userManager.AddToRoleAsync(user, UserRoles.doctor);
+
             if (!result.Succeeded)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
+                return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
 
             return Ok(new Response { Status = "Success", Message = "Patient created successfully!" });
         }
@@ -95,7 +97,7 @@ namespace EGUI_Stage2.Controllers
         {
             var userExists = await _userManager.FindByNameAsync(userData.Username);
             if (userExists != null)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "Username already exists!" });
+                return StatusCode(StatusCodes.Status409Conflict, new Response { Status = "Error", Message = "Username already exists!" });
 
             User user = new()
             {
@@ -109,7 +111,7 @@ namespace EGUI_Stage2.Controllers
             var result = await _userManager.CreateAsync(user, userData.Password);
             _userManager.AddToRoleAsync(user, UserRoles.doctor);
             if (!result.Succeeded)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "Doctor creation failed! Please check user details and try again." });
+                return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Message = "Doctor creation failed! Please check user details and try again." });
 
             return Ok(new Response { Status = "Success", Message = "Doctor created successfully!" });
         }
@@ -121,10 +123,10 @@ namespace EGUI_Stage2.Controllers
         {
             var user = await _userManager.FindByNameAsync(patientUsername);
             if (user == null || user.IsVerified)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "An unverified user with the given username does not exist." });
+                return StatusCode(StatusCodes.Status403Forbidden, new Response { Status = "Error", Message = "An unverified user with the given username does not exist." });
             
             await _userManager.AddToRoleAsync(user, UserRoles.patient);
-            await _userManager.RemoveFromRoleAsync(user, UserRoles.unverifiedPatient);
+            //await _userManager.RemoveFromRoleAsync(user, UserRoles.unverifiedPatient);
 
             user.IsVerified = true;
             await _userManager.UpdateAsync(user);
@@ -138,8 +140,12 @@ namespace EGUI_Stage2.Controllers
         [Route("list-of-doctors")]
         public async Task<IActionResult> ListOfDoctors()
         {
-            if (this.User.IsInRole(UserRoles.unverifiedPatient)) //can replace using technique to get current user (used elsewhere) 
-                return Forbid("Your Patient account has not been verified yet (from our side).");
+            //if (this.User.IsInRole(UserRoles.unverifiedPatient)) //can replace using technique to get current user (used elsewhere) 
+            //    return Forbid("Your Patient account has not been verified yet (from our side).");
+            var user = await _userManager.FindByNameAsync(this.User.Identity.Name);
+            if (!user.IsVerified && this.User.IsInRole(UserRoles.patient))
+                return StatusCode((int)HttpStatusCode.Forbidden, new Response { Status = "Error", Message = "Your Patient account is not verified." });
+
 
             var res = await _userManager.GetUsersInRoleAsync(UserRoles.doctor);
 
@@ -147,15 +153,37 @@ namespace EGUI_Stage2.Controllers
 
             return Ok(result);
         }
+        [HttpGet]
+        [Authorize(Roles = UserRoles.admin)]
+        [Route("list-of-patients")]
+        public async Task<IActionResult> ListOfPatients([FromQuery]bool onlyGetUnverified=false)
+        {
+            //if (this.User.IsInRole(UserRoles.unverifiedPatient)) //can replace using technique to get current user (used elsewhere) 
+            //    return Forbid("Your Patient account has not been verified yet (from our side).");
+            var user = await _userManager.FindByNameAsync(this.User.Identity.Name);
+            if (!user.IsVerified&&this.User.IsInRole(UserRoles.patient))
+                return StatusCode((int)HttpStatusCode.Forbidden, new Response { Status = "Error", Message = "Your Patient account is not verified." });
 
+            var res = await _userManager.GetUsersInRoleAsync(UserRoles.patient);
+
+            List<PatientDTO> result;
+            if (onlyGetUnverified)
+                result = res.Where(x => !x.IsVerified).Select(x => new PatientDTO(x)).ToList();
+            else
+                result = res.Select(x => new PatientDTO(x)).ToList();
+
+            return Ok(result);
+        }
         [HttpGet]
         [Authorize]
         [Route("get-doctors-by-speciality")]
-        public async Task<IActionResult> ListOfDoctors([FromQuery]DoctorSpecialtyEnum doctorSpecialty)
+        public async Task<IActionResult> ListOfDoctorsBySpeciality([FromQuery]DoctorSpecialtyEnum doctorSpecialty) //can replace with other trickt to get current user and read isVerified bool
         {
-            if (this.User.IsInRole(UserRoles.unverifiedPatient))
-                return Forbid("Your Patient account has not been verified yet (from our side).");
-
+            //if (this.User.IsInRole(UserRoles.unverifiedPatient)) //can use another trick to get current user and check IsVerified boolean
+            //    return Forbid("Your Patient account has not been verified yet (from our side).");
+            var user = await _userManager.FindByNameAsync(this.User.Identity.Name);
+            if (!user.IsVerified && this.User.IsInRole(UserRoles.patient))
+                return StatusCode((int)HttpStatusCode.Forbidden, new Response { Status = "Error", Message = "Your Patient account is not verified." });
 
             var res = (await _userManager.GetUsersInRoleAsync(UserRoles.doctor)).Where(x=>x.Specialty_Doc==doctorSpecialty).ToList();
 
@@ -164,7 +192,7 @@ namespace EGUI_Stage2.Controllers
             return Ok(result);
         }
 
-        //[HttpGet]
+        //[HttpGet]`
         //[Route("test-get-visit-slots-for-hardcoded-doctor")]
         //public async Task<IActionResult> TestGetVisitSlotsForHardcodedDoctor()
         //{

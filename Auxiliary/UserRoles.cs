@@ -5,7 +5,7 @@
         public const string admin = "Admin";
         public const string doctor = "Doctor";
         public const string patient = "Patient";
-        public const string unverifiedPatient = "UnverifiedPatient";
+        //public const string unverifiedPatient = "UnverifiedPatient";
 
     }
 }
