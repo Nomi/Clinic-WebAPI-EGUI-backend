@@ -8,7 +8,7 @@ namespace EGUI_Stage2.DTOs
         public string Name { get; set; }
         public string Email { get; set; }
         public bool IsVerified { get; set; }
-        public List<VisitSlot> Appointments { get; set; }
+        public List<VisitSlot>? Appointments { get; set; }
 
         public PatientDTO() { }
         public PatientDTO(User patient)
