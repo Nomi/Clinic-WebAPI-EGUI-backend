@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EGUI_Stage2.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class initialcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,7 +30,7 @@ namespace EGUI_Stage2.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
                     Specialty_Doc = table.Column<int>(type: "INTEGER", nullable: false),
                     UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
@@ -159,22 +159,18 @@ namespace EGUI_Stage2.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Schedule",
+                name: "Schedules",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DoctorId = table.Column<string>(type: "TEXT", nullable: false),
-                    DoctorDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    dayOfWeek = table.Column<int>(type: "INTEGER", nullable: false),
-                    StartTime = table.Column<TimeOnly>(type: "TEXT", nullable: false),
-                    EndTime = table.Column<TimeOnly>(type: "TEXT", nullable: false)
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    DateOfMonday = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DoctorId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Schedule", x => x.Id);
+                    table.PrimaryKey("PK_Schedules", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Schedule_AspNetUsers_DoctorId",
+                        name: "FK_Schedules_AspNetUsers_DoctorId",
                         column: x => x.DoctorId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -182,43 +178,52 @@ namespace EGUI_Stage2.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "VisitSlots",
+                name: "ScheduleEntries",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    dayOfWeek = table.Column<int>(type: "INTEGER", nullable: false),
+                    StartTime = table.Column<TimeOnly>(type: "TEXT", nullable: false),
+                    EndTime = table.Column<TimeOnly>(type: "TEXT", nullable: false),
+                    ScheduleCurrentId = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScheduleEntries", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScheduleEntries_Schedules_ScheduleCurrentId",
+                        column: x => x.ScheduleCurrentId,
+                        principalTable: "Schedules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Visits",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    PatientId = table.Column<string>(type: "TEXT", nullable: false),
+                    PatientId = table.Column<string>(type: "TEXT", nullable: true),
                     StartTime = table.Column<TimeOnly>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
-                    doctorId = table.Column<string>(type: "TEXT", nullable: false),
-                    ScheduleEntryId = table.Column<int>(type: "INTEGER", nullable: true),
-                    ScheduleEntryId1 = table.Column<int>(type: "INTEGER", nullable: true)
+                    ParentScheduleEntryId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VisitSlots", x => x.Id);
+                    table.PrimaryKey("PK_Visits", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_VisitSlots_AspNetUsers_PatientId",
+                        name: "FK_Visits_AspNetUsers_PatientId",
                         column: x => x.PatientId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_VisitSlots_AspNetUsers_doctorId",
-                        column: x => x.doctorId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_VisitSlots_Schedule_ScheduleEntryId",
-                        column: x => x.ScheduleEntryId,
-                        principalTable: "Schedule",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_VisitSlots_Schedule_ScheduleEntryId1",
-                        column: x => x.ScheduleEntryId1,
-                        principalTable: "Schedule",
-                        principalColumn: "Id");
+                        name: "FK_Visits_ScheduleEntries_ParentScheduleEntryId",
+                        column: x => x.ParentScheduleEntryId,
+                        principalTable: "ScheduleEntries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -259,29 +264,24 @@ namespace EGUI_Stage2.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Schedule_DoctorId",
-                table: "Schedule",
+                name: "IX_ScheduleEntries_ScheduleCurrentId",
+                table: "ScheduleEntries",
+                column: "ScheduleCurrentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_DoctorId",
+                table: "Schedules",
                 column: "DoctorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_VisitSlots_doctorId",
-                table: "VisitSlots",
-                column: "doctorId");
+                name: "IX_Visits_ParentScheduleEntryId",
+                table: "Visits",
+                column: "ParentScheduleEntryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_VisitSlots_PatientId",
-                table: "VisitSlots",
+                name: "IX_Visits_PatientId",
+                table: "Visits",
                 column: "PatientId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VisitSlots_ScheduleEntryId",
-                table: "VisitSlots",
-                column: "ScheduleEntryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VisitSlots_ScheduleEntryId1",
-                table: "VisitSlots",
-                column: "ScheduleEntryId1");
         }
 
         /// <inheritdoc />
@@ -303,13 +303,16 @@ namespace EGUI_Stage2.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "VisitSlots");
+                name: "Visits");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Schedule");
+                name: "ScheduleEntries");
+
+            migrationBuilder.DropTable(
+                name: "Schedules");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

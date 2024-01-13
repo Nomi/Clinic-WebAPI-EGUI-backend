@@ -1,5 +1,5 @@
 using EGUI_Stage2.Auxiliary;
-using EGUI_Stage2.Data;
+using EGUI_Stage2.Database;
 using EGUI_Stage2.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -9,7 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
-using EGUI_Stage2.Repositories;
 
 
 
@@ -20,19 +19,15 @@ ConfigurationManager configuration = builder.Configuration;
 // Add services to the container.
 
 ///DB Connection:
-string connStr = builder.Configuration.GetConnectionString("SqliteConnection");
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite(connStr));
+builder.Services.AddDbContext<ApplicationDbContext>(opt => opt.UseSqlite("Data Source = EGUIdb.db"));
 
 ///Identity: 
 
-builder.Services.AddIdentityCore<User>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddIdentityCore<AppUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-
-
-builder.Services.AddScoped<IScheduleManager, ScheduleManager>();
 
 
 /// Adding Authentication
@@ -41,7 +36,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})// Adding Jwt Bearer
+})
 .AddJwtBearer(options =>
 {
     options.SaveToken = true;
@@ -50,27 +45,10 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuer = false,
         ValidateAudience = false,
-        ValidAudience = configuration[AuthHelper.JwtValidAudienceConfigAccessor],
-        ValidIssuer = configuration[AuthHelper.JwtValidIssuerConfigAccessor],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration[AuthHelper.JwtSecretConfigAccessor])),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SomeRandomStringThatIsHighlySecure123321")),
     };
 });
 
-/* //old:
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer();
-    //( options =>
-    //    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-    //    {
-    //        ValidateIssuer = true,
-    //        ValidateAudience = true,
-    //        ValidateLifetime = true,
-    //        ValidateIssuerSigningKey = true,
-
-    //    }
-    //);
-
-*/
 
 
 builder.Services.AddControllers()
@@ -84,7 +62,6 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(setup =>
 {
-    // Include 'SecurityScheme' to use JWT Authentication
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {
         BearerFormat = "JWT",
@@ -121,8 +98,9 @@ if (app.Environment.IsDevelopment())
 
 using (var scope = app.Services.CreateScope())
 {
-    //Resolve ASP .NET Core Identity with DI help
-    await AuthHelper.CreateRoles(scope.ServiceProvider);
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+    await AuthService.EnsureRolesCreated(userManager,roleManager);
 }
 
 

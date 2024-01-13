@@ -14,10 +14,10 @@ namespace EGUI_Stage2.Models
         [NotMapped] 
         public DateTime DateOfSunday => DateOfMonday.AddDays(7).Date.AddSeconds(-1); //gives the DateTime with value 11:59pm of the sunday.
 
-        public List<ScheduleEntry>? ScheduleEntries { get; set; }
+        public List<ScheduleForDay>? ScheduleForEachDay { get; set; }
 
         // Foreign key to link to the User (Doctor)
         public string DoctorId { get; set; }
-        public virtual User Doctor { get; set; }
+        public virtual AppUser Doctor { get; set; }
     }
 }

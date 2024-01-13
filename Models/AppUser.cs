@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace EGUI_Stage2.Models
 {
-    public class User : IdentityUser
+    public class AppUser : IdentityUser
     {
         public string? Name { get; set; }
         [NotMapped]

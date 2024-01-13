@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EGUI_Stage2.Models
 {
-    public class ScheduleEntry
+    public class ScheduleForDay
     {
         [Key]
         public string Id;
@@ -14,9 +14,9 @@ namespace EGUI_Stage2.Models
 
         public TimeOnly EndTime { get; set; }
 
-        public IEnumerable<VisitSlot>? VisitSlots { get; set; }
+        public IEnumerable<Visit>? VisitSlots { get; set; }
 
-        public Schedule Schedule { get; set; }
+        public Schedule ScheduleCurrent { get; set; }
     }
 
 }
