@@ -29,8 +29,8 @@ namespace EGUI_Stage2.DTOs
             //s.dayOfWeek = Entries[indexOfEntry].dayOfWeek;
             s.Date = Entries[indexOfEntry].date.ToDateTime(TimeOnly.MinValue).Date;
             s.dayOfWeek = s.Date.DayOfWeek;
-            s.StartTime = TimeOnly.FromTimeSpan(Entries[indexOfEntry].startTimeOnly.TimeOfDay);
-            s.EndTime = TimeOnly.FromTimeSpan(Entries[indexOfEntry].endTimeOnly.TimeOfDay);
+            s.StartTime = Entries[indexOfEntry].startTimeOnly;
+            s.EndTime = Entries[indexOfEntry].endTimeOnly;
             return s;
         }
     }
@@ -40,7 +40,7 @@ namespace EGUI_Stage2.DTOs
         public DateOnly date { get; set; }
         [JsonIgnore]
         public DayOfWeek dayOfWeek => date.DayOfWeek;
-        public DateTime startTimeOnly { get; set; }
-        public DateTime endTimeOnly { get; set; }
+        public TimeOnly startTimeOnly { get; set; }
+        public TimeOnly endTimeOnly { get; set; }
     }
 }

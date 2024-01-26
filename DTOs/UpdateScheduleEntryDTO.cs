@@ -26,8 +26,8 @@ namespace EGUI_Stage2.DTOs
             ScheduleEntry s = new ScheduleEntry();
             s.Date = this.Entries[indexOfEntry].date.ToDateTime(TimeOnly.MinValue).Date;
             s.dayOfWeek = s.Date.DayOfWeek;
-            s.StartTime = TimeOnly.FromTimeSpan(Entries[indexOfEntry].startTimeOnly.TimeOfDay);
-            s.EndTime = TimeOnly.FromTimeSpan(Entries[indexOfEntry].endTimeOnly.TimeOfDay);
+            s.StartTime = Entries[indexOfEntry].startTimeOnly;
+            s.EndTime = Entries[indexOfEntry].endTimeOnly;
             return s;
         }
     }
