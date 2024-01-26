@@ -13,6 +13,7 @@ using System.Security.Claims;
 namespace EGUI_Stage2.Controllers
 {
     //[Authorize]
+    //[Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
         //Maybe the token stuff would've been done better using a TokenService class.
@@ -58,8 +59,9 @@ namespace EGUI_Stage2.Controllers
                 return Ok(new
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
+                    role = userRoles.FirstOrDefault("patient"),
                     expiration = token.ValidTo
-                });
+                }); ;
             }
             return Unauthorized("Either you have enetered invalid parameters OR your Patient account has not been verified from our side yet.");
         }

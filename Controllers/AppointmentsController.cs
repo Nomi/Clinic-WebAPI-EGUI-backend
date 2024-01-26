@@ -41,8 +41,9 @@ namespace EGUI_Stage2.Controllers
 
 
             var user = await _userManager.FindByNameAsync(this.User.Identity.Name);
+            bool isCurrentUserTheAssignedDoctor = (user.UserName == doc.UserName);
             DoctorDTO doctorDTO = new(doc);
-            doctorDTO.SetAndFilterOutPastAppointments(res, user);
+            doctorDTO.SetAndFilterOutPastAppointments(res, user, isCurrentUserTheAssignedDoctor);
 
             return Ok(doctorDTO);
         }

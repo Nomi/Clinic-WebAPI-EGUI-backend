@@ -21,7 +21,7 @@ namespace EGUI_Stage2.DTOs
             Speciality = doc.Specialty_Doc;
             //Schedule = doc?.DoctorSchedule?.Where(x => x.DateOfMonday.Date >= CalendarHelper.GetDateOfMondayOfWeek(DateTime.Today).Date).ToList();
         }
-        public void SetAndFilterOutPastAppointments(IEnumerable<Schedule> schedules, User currentUser)
+        public void SetAndFilterOutPastAppointments(IEnumerable<Schedule> schedules, User currentUser, bool isCurrentUserTheAssignedDoctor=false)
         {
             AppointmentSlots = new List<VisitSlot>();
             foreach(Schedule s in schedules)
@@ -29,7 +29,15 @@ namespace EGUI_Stage2.DTOs
                 if (s.ScheduleEntries == null) continue;
                 foreach(var entry in s.ScheduleEntries.Where(x=>x.Date>DateTime.Now.Date))
                 {
-                    AppointmentSlots.AddRange(entry.VisitSlots.Where(x => (x.ParentScheduleEntry.Date.Date != DateTime.Now.Date || x.StartTime >= TimeOnly.FromDateTime(DateTime.Now)) && (x.Patient == null || x?.Patient.Id == currentUser.Id)));
+                    if(isCurrentUserTheAssignedDoctor)
+                    {
+                        AppointmentSlots.AddRange(entry.VisitSlots.Where(x => (x.ParentScheduleEntry.Date.Date != DateTime.Now.Date || x.StartTime >= TimeOnly.FromDateTime(DateTime.Now))));
+                    }
+                    else
+                    {
+                        AppointmentSlots.AddRange(entry.VisitSlots.Where(x => (x.ParentScheduleEntry.Date.Date != DateTime.Now.Date || x.StartTime >= TimeOnly.FromDateTime(DateTime.Now)) && (x.Patient == null || x?.Patient.Id == currentUser.Id)));
+                    }
+                    
                 }
             }
 
